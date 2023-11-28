@@ -19,8 +19,8 @@ def init_webdriver():
     driver.set_window_size(width_px, height_px)
     return driver
 
-def export_html_as_jpg(filename, dir, driver):
-    driver.get('C:/Users/Dominik-PC/Documents/DiplomovaPraca/PraktickaCast/InvoiceDatasetGenerator/HTML/output.html')
+def export_html_as_jpg(filename, dir, driver, html_output_path):
+    driver.get(html_output_path)
     os.makedirs(dir, exist_ok=True)
     driver.save_screenshot(f"{dir}{filename}.png")
 
@@ -69,6 +69,8 @@ def main():
     t_start = time.time()
     driver = init_webdriver()
     invoice_index = INVOICE_NAME_START_AT
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    html_output_path = os.path.join(os.path.sep, ROOT_DIR, '..' , 'HTML', 'output.html')
     os.makedirs(OUT_DIRECTORY, exist_ok=True)
     for template in INVOICE_TEMPLATES:
         for language in INVOICE_LANGUAGES:
@@ -83,7 +85,7 @@ def main():
 
             for i in range(INVOICES_TO_GENERATE):
                 generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup)
-                export_html_as_jpg(invoice_index, OUT_DIRECTORY, driver)
+                export_html_as_jpg(invoice_index, OUT_DIRECTORY, driver, html_output_path)
                 invoice_index += 1
 
     # Close the browser
