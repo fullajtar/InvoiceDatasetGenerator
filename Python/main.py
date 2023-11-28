@@ -1,15 +1,14 @@
 import json
-import re
 import time
+import os
+
 from bs4 import BeautifulSoup
-from faker import Faker
-from datetime import datetime, timedelta
 from FakeClass import FakeClass
-from constants import *
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+
+from constants import *
 from augment import augment
-import os
 
 def init_webdriver():
     chrome_options = Options()
@@ -20,8 +19,8 @@ def init_webdriver():
     driver.set_window_size(width_px, height_px)
     return driver
 
-def export_html_as_jpg(filename, dir, driver):
-    driver.get('C:/Users/Dominik-PC/Documents/DiplomovaPraca/PraktickaCast/InvoiceDatasetGenerator/HTML/output.html')
+def export_html_as_jpg(filename, dir, driver, html_output_path):
+    driver.get(html_output_path)
     os.makedirs(dir, exist_ok=True)
     driver.save_screenshot(f"{dir}{filename}.png")
 
@@ -70,6 +69,9 @@ def main():
     t_start = time.time()
     driver = init_webdriver()
     invoice_index = INVOICE_NAME_START_AT
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    html_output_path = os.path.join(os.path.sep, ROOT_DIR, '..' , 'HTML', 'output.html')
+    os.makedirs(OUT_DIRECTORY, exist_ok=True)
     for template in INVOICE_TEMPLATES:
         for language in INVOICE_LANGUAGES:
 
@@ -83,7 +85,7 @@ def main():
 
             for i in range(INVOICES_TO_GENERATE):
                 generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup)
-                export_html_as_jpg(invoice_index, OUT_DIRECTORY, driver)
+                export_html_as_jpg(invoice_index, OUT_DIRECTORY, driver, html_output_path)
                 invoice_index += 1
 
     # Close the browser
@@ -96,22 +98,22 @@ def main():
     t = time.time() - t_start
     print(str(invoice_index - INVOICE_NAME_START_AT)+" invoices augmented in -->  ", f"{t:.3f}", 'seconds', end="  ")
 
-# main()
+def debug_output_html():
+    invoice_index = INVOICE_NAME_START_AT
+    for template in INVOICE_TEMPLATES:
+        for language in INVOICE_LANGUAGES:
 
-t_start = time.time()
-invoice_index = INVOICE_NAME_START_AT
-for template in INVOICE_TEMPLATES:
-    for language in INVOICE_LANGUAGES:
+            soup = read_html_template(template)
+            loaded_dict, delivery_methods, payment_methods = read_language_pack(language)
+            soup = translate_template(soup, loaded_dict)
 
-        soup = read_html_template(template)
-        loaded_dict, delivery_methods, payment_methods = read_language_pack(language)
-        soup = translate_template(soup, loaded_dict)
+            # generate these dict fields to final invoice
+            with open(FIELD_INCLUSION, 'r', encoding='utf-8') as file:
+                fields_dict = json.load(file)   
 
-        # generate these dict fields to final invoice
-        with open(FIELD_INCLUSION, 'r', encoding='utf-8') as file:
-            fields_dict = json.load(file)   
+            for i in range(INVOICES_TO_GENERATE):
+                generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup)
+                # export_html_as_jpg(invoice_index, OUT_DIRECTORY, driver)
+                invoice_index += 1
 
-        for i in range(INVOICES_TO_GENERATE):
-            generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup)
-            # export_html_as_jpg(invoice_index, OUT_DIRECTORY, driver)
-            invoice_index += 1
+main()
