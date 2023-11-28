@@ -1,0 +1,8 @@
+augmented_images/
+augmented_images_10k/
+generated_images/
+generated_images_10k/
+scratch.*
+test.*
+Python/__pycache__/
+HTML/output.html
