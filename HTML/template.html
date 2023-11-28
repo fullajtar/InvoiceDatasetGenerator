@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 70%;
+            margin: 0;
+            padding: 15px;
+            width: 210mm;
+            height: 297mm; /* A4 size */
+            /* border: 1px solid #333; */
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            display: flex; /* or inline-flex */
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            /* border: 1px solid #ff0000; */
+        }
+        h1, h2, h3 {
+            margin: 0;
+            margin-top: 2rem;
+        }
+
+        .box {
+            flex: 1 0 50%; /* This makes each box take up 50% of the container width */
+            min-height: 100px;
+            box-sizing: border-box;
+            /* border: 1px solid #333; */
+        }
+
+        img {
+            width: 15%;
+            max-width: 100%; /* Ensure images don't exceed the width of their containers */
+            height: auto; /* Maintain the aspect ratio of the images */
+            display: block; /* Remove extra space below the images */
+            margin: 0 auto; /* Center the images horizontally within their containers */
+        }
+
+        #delivery-address {
+            flex: 1 0 100%; /* This makes each box take up 100% of the container width */
+            min-height: 100px;
+            /* border: 1px solid #333; */
+            box-sizing: border-box;
+        }
+
+        #invoice-details {
+            margin-bottom: 20px;
+        }
+
+        #invoice-items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 80%;
+        }
+
+        #invoice-items th, #invoice-items td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #invoice-total {
+            float: right;
+        }
+
+        tr:empty {
+            display: none;
+        }
+
+        #container th {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <img class="header-box" src="Placeholder_view_vector.svg.png" alt="">
+
+        <header class="header-box">
+            <h1 id="invoice_title">Invoice</h1>
+            <h2 id="invoice_company_name_text">Your Company Name</h2>
+        </header>
+        
+        <img class="header-box"  src="1200px-QR_Code_Example.svg.png" alt="">
+    </div>
+
+    <div class="container">
+        <table id="supplier-info" class="box">
+            <tr>
+                <th colspan="2"><h3 id="supplier_title">Supplier:</h3></th>
+            </tr>
+            <tr>
+                <td id="company_name_title">Company Name:</td>
+                <td id="company_name_text">Your Company, Inc.</td>
+            </tr>
+            <tr>
+                <td id="address_title">Address:</td>
+                <td id="address_text">456 Business Avenue, Townsville, State, 54321</td>
+            </tr>
+            <tr>
+                <td id="supplier_business_id_title">Supplier ID:</td>
+                <td id="supplier_business_id_text">SUP123</td>
+            </tr>
+            <tr>
+                <td id="tax_id_title">VAT HQ:</td>
+                <td id="tax_id_text">HQ123</td>
+            </tr>
+            <tr>
+                <td id="vat_reg_no_title">VAT ID:</td>
+                <td id="vat_reg_no_text">VAT123456</td>
+            </tr>
+            <tr>
+                <td id="website_title">Website:</td>
+                <td id="website_text"><a href="http://www.yourcompany.com" target="_blank">www.yourcompany.com</a></td>
+            </tr>
+            <tr>
+                <td id="email_title">Email:</td>
+                <td id="email_text"><a href="mailto:info@yourcompany.com">info@yourcompany.com</a></td>
+            </tr>
+            <tr>
+                <td id="phone_number_title">Phone Number:</td>
+                <td id="phone_number_text">+1 (555) 123-4567</td>
+            </tr>
+            <tr>
+                <td id="commercial_register_title">Commercial Register:</td>
+                <td id="commercial_register_text">CR123</td>
+            </tr>
+        </table>
+        
+        <table id="bank-details" class="box">
+            <tr>
+                <th colspan="2"><h3 id="bank_connection_title">Bank Connection:</h3></th>
+            </tr>
+            <tr>
+                <td id="iban_title">IBAN:</td>
+                <td id="iban_text">Your IBAN</td>
+            </tr>
+            <tr>
+                <td id="variable_symbol_title">Variable Symbol:</td>
+                <td id="variable_symbol_text">123456</td>
+            </tr>
+            <tr>
+                <td id="constant_symbol_title">Constant Symbol:</td>
+                <td id="constant_symbol_text">789</td>
+            </tr>
+            <tr>
+                <td id="specific_symbol_title">Specific Symbol:</td>
+                <td id="specific_symbol_text">012345</td>
+            </tr>
+            <tr>
+                <td id="account_number_title">Account Number:</td>
+                <td id="account_number_text">Your Account Number</td>
+            </tr>
+            <tr>
+                <td id="bank_name_title">Bank Name:</td>
+                <td id="bank_name_text">Your Bank</td>
+            </tr>
+            <tr>
+                <td id="swift_title">SWIFT:</td>
+                <td id="swift_text">Your SWIFT Code</td>
+            </tr>
+        </table>
+        
+        <table id="recipient" class="box">
+            <tr>
+                <th colspan="2"><h3 id="recipient_title">Recipient:</h3></th>
+            </tr>
+            <tr>
+                <td id="recipient_company_name_title">Company Name:</td>
+                <td id="recipient_company_name_text">Recipient Company, Ltd.</td>
+            </tr>
+            <tr>
+                <td id="recipient_address_title">Address:</td>
+                <td id="recipient_address_text">789 Client Street, Cityville, State, 67890</td>
+            </tr>
+            <tr>
+                <td id="recipient_business_id_title">Recipient ID:</td>
+                <td id="recipient_business_id_text">REC789</td>
+            </tr>
+            <tr>
+                <td id="recipient_tax_id_title">VAT HQ:</td>
+                <td id="recipient_tax_id_text">HQ789</td>
+            </tr>
+            <tr>
+                <td id="recipient_vat_id_title">VAT ID:</td>
+                <td id="recipient_vat_id_text">VAT789012</td>
+            </tr>
+            <tr>
+                <td id="recipient_website_title">Website:</td>
+                <td id="recipient_website_text"><a href="http://www.recipientcompany.com" target="_blank">www.recipientcompany.com</a></td>
+            </tr>
+            <tr>
+                <td id="recipient_email_title">Email:</td>
+                <td id="recipient_email_text"><a href="mailto:info@recipientcompany.com">info@recipientcompany.com</a></td>
+            </tr>
+            <tr>
+                <td id="recipient_phone_number_title">Phone Number:</td>
+                <td id="recipient_phone_number_text">+1 (555) 987-6543</td>
+            </tr>
+            <tr>
+                <td id="recipient_commercial_register_title">Commercial Register:</td>
+                <td id="recipient_commercial_register_text">CR789</td>
+            </tr>
+        </table>
+    
+        <table id="invoice-details" class="box">
+            <tr>
+                <th colspan="2"><h3 id="invoice_info_title">Invoice Info:</h3></th>
+            </tr>
+            <tr>
+                <td id="issue_date_title">Issue Date:</td>
+                <td id="issue_date_text">January 1, 2023</td>
+            </tr>
+            <tr>
+                <td id="delivery_date_title">Delivery Date:</td>
+                <td id="delivery_date_text">January 5, 2023</td>
+            </tr>
+            <tr>
+                <td id="due_date_title">Due Date:</td>
+                <td id="due_date_text">January 31, 2023</td>
+            </tr>
+            <tr>
+                <td id="taxation_date_title">Date of Taxation:</td>
+                <td id="taxation_date_text">January 1, 2023</td>
+            </tr>
+            <tr>
+                <td id="payment_receipt_date_title">Date of Receipt of Payment:</td>
+                <td id="payment_receipt_date_text"></td>
+            </tr>
+            <tr>
+                <td id="payment_method_title">Payment Method:</td>
+                <td id="payment_method_text"></td>
+            </tr>
+            <tr>
+                <td id="delivery_method_title">Delivery Method:</td>
+                <td id="delivery_method_text"></td>
+            </tr>
+            <tr>
+                <td id="currency_title">Currency:</td>
+                <td id="currency_text"></td>
+            </tr>
+            <tr>
+                <td id="invoice_number_title">Invoice Number:</td>
+                <td id="invoice_number_text"></td>
+            </tr>
+        </table>
+
+        <table id="delivery-address" class="box">
+            <tr>
+                <th colspan="2"><h3 id="delivery_title">Delivery Address:</h3></th>
+            </tr>
+            <tr>
+                <td id="delivery_address_title">Address:</td>
+                <td id="delivery_address_text">789 Client Street, Cityville, State, 67890</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="container">
+        <table id="invoice-items">
+            <thead>
+                <tr>
+                    <th>/</th>
+                    <th id="item_code_title">Code</th>
+                    <th id="item_description_title">Description</th>
+                    <th id="quantity_title">Quantity</th>
+                    <th id="unit_price_vat_excl_title">Unit Price Vat excl.</th>
+                    <th id="discount_percentage_title">Discount %</th>
+                    <th id="discount_title">Discount</th>
+                    <th id="discount_reason_title">Discount reason</th>
+                    <th id="price_vat_excl_title">Price Vat excl.</th>
+                    <th id="vat_percentage_title">VAT %</th>
+                    <th id="vat_title">VAT</th>
+                    <th id="other_taxes_title">Other taxes</th>
+                    <th id="total_title">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td></td>
+                    <td>AX12</td>
+                    <td>Item 1</td>
+                    <td>2</td>
+                    <td>$50.00</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>-</td>
+                    <td>$100</td>
+                    <td>20</td>
+                    <td>$20</td>
+                    <td>-</td>
+                    <td>$120.00</td>
+                </tr>
+                <!-- Add more items as needed -->
+            </tbody>
+        </table>
+        
+        <footer>
+            <p>Thank you for your business!</p>
+        </footer>
+
+        <div id="invoice-total">
+            <tr><strong><td id="to_pay_title">Total: </td></strong><td id="to_pay_text">$120.00</td></tr>
+        </div>
+    
+    </div>
+
+    <div class="container">
+        <h3 id="note_title">Note:</h3>
+        <p id="note_text">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec vitae arcu. Integer pellentesque quam vel velit. Nunc auctor. Suspendisse sagittis ultrices augue. Aenean id metus id velit ullamcorper pulvinar. Aliquam erat volutpat. Sed ac dolor sit amet purus malesuada congue. Phasellus enim erat, vestibulum vel, aliquam a, posuere eu, velit. Phasellus et lorem id felis nonummy placerat.</p>
+    </div>
+
+    <div class="container">
+        <!-- who created the invoice, support etc. -->
+    </div>
+
+</body>
+</html>
