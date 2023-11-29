@@ -19,10 +19,10 @@ def init_webdriver():
     driver.set_window_size(width_px, height_px)
     return driver
 
-def export_html_as_jpg(filename, dir, driver, html_output_path):
-    driver.get(html_output_path)
-    os.makedirs(dir, exist_ok=True)
-    driver.save_screenshot(f"{dir}{filename}.png")
+def export_html_as_jpg(filename, output_dir, driver, input_abs_path_to_html):
+    driver.get(input_abs_path_to_html)
+    os.makedirs(output_dir, exist_ok=True)
+    driver.save_screenshot(f"{output_dir}{filename}.png")
 
 def read_language_pack(language):
     with open(language, 'r', encoding='utf-8') as file:
@@ -65,13 +65,38 @@ def read_html_template(filename):
         html_content = html_file.read()
         return BeautifulSoup(html_content, 'html.parser')
 
+def generate_annotations(fields_dict, template, driver, invoice_index, annotations_path): 
+    # insert faked fields to HTML code
+    for element_id, include_field in fields_dict.items():
+        soup = read_html_template(template)
+        body = soup.find('body')
+        body['style'] = 'visibility: hidden; color: rgba(0,0,0,0);'
+        style = soup.find('style')
+        style.string = style.string + '''       a{
+            visibility: hidden;
+        }'''
+        paragraph = soup.find(id=element_id)
+        if paragraph and include_field:
+            paragraph['style'] = 'border: 1px solid #333; visibility: visible;'
+            # temporarily save HTML file, later used for image export
+            annotation_path = f"{annotations_path}{element_id}.html"
+            with open(annotation_path, 'w', encoding='utf-8') as file:
+                file.write(soup.prettify())
+
+            ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+            annotation_absolute_path = os.path.join(os.path.sep, ROOT_DIR, '..' , 'HTML', 'annotations', f"{element_id}.html")
+            export_html_as_jpg( f"{invoice_index}_{element_id}" , OUT_DIRECTORY, driver, annotation_absolute_path)
+    return soup
+
 def main():
     t_start = time.time()
     driver = init_webdriver()
     invoice_index = INVOICE_NAME_START_AT
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    ANNOTATIONS_PATH = './HTML/annotations/'
     html_output_path = os.path.join(os.path.sep, ROOT_DIR, '..' , 'HTML', 'output.html')
     os.makedirs(OUT_DIRECTORY, exist_ok=True)
+    os.makedirs(ANNOTATIONS_PATH, exist_ok=True)
     for template in INVOICE_TEMPLATES:
         for language in INVOICE_LANGUAGES:
 
@@ -86,6 +111,7 @@ def main():
             for i in range(INVOICES_TO_GENERATE):
                 generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup)
                 export_html_as_jpg(invoice_index, OUT_DIRECTORY, driver, html_output_path)
+                generate_annotations(fields_dict, './HTML/output.html', driver, invoice_index, ANNOTATIONS_PATH)
                 invoice_index += 1
 
     # Close the browser
@@ -93,27 +119,9 @@ def main():
     t = time.time() - t_start
     print(str(invoice_index - INVOICE_NAME_START_AT)+" invoices generated in -->  ", f"{t:.3f}", 'seconds')
 
-    t_start = time.time()
-    augment()
-    t = time.time() - t_start
-    print(str(invoice_index - INVOICE_NAME_START_AT)+" invoices augmented in -->  ", f"{t:.3f}", 'seconds', end="  ")
-
-def debug_output_html():
-    invoice_index = INVOICE_NAME_START_AT
-    for template in INVOICE_TEMPLATES:
-        for language in INVOICE_LANGUAGES:
-
-            soup = read_html_template(template)
-            loaded_dict, delivery_methods, payment_methods = read_language_pack(language)
-            soup = translate_template(soup, loaded_dict)
-
-            # generate these dict fields to final invoice
-            with open(FIELD_INCLUSION, 'r', encoding='utf-8') as file:
-                fields_dict = json.load(file)   
-
-            for i in range(INVOICES_TO_GENERATE):
-                generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup)
-                # export_html_as_jpg(invoice_index, OUT_DIRECTORY, driver)
-                invoice_index += 1
+    # t_start = time.time()
+    # augment()
+    # t = time.time() - t_start
+    # print(str(invoice_index - INVOICE_NAME_START_AT)+" invoices augmented in -->  ", f"{t:.3f}", 'seconds', end="  ")
 
 main()
