@@ -1,4 +1,5 @@
 OUT_DIRECTORY = './generated_images/'
+OUT_ANNOTATIONS_DIRECTORY = './generated_images/annotated/'
 AUGMENTED_IMAGES_DIRECTORY = './augmented_images'
 INVOICE_LANGUAGES = ['./JSON/slovak.json', './JSON/english.json']
 INVOICE_TEMPLATES = ['./HTML/template.html']

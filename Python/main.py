@@ -1,6 +1,7 @@
 import json
 import time
 import os
+import random
 
 from bs4 import BeautifulSoup
 from FakeClass import FakeClass
@@ -38,6 +39,16 @@ def translate_template(soup, loaded_dict):
         if paragraph:
             paragraph.string = value
     return soup
+
+# replace "maybe" values with random true/false
+def randomize_include_fields(path_to_json):
+    with open(FIELD_INCLUSION, 'r', encoding='utf-8') as file:
+        fields_dict = json.load(file)
+        for element_id, include_field in fields_dict.items():
+            if include_field == "maybe":
+                fields_dict[element_id] = random.choice([True, False])
+                # print(include_field)
+    return fields_dict
 
 def generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup): 
     # init fake invoice class
@@ -85,7 +96,7 @@ def generate_annotations(fields_dict, template, driver, invoice_index, annotatio
 
             ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
             annotation_absolute_path = os.path.join(os.path.sep, ROOT_DIR, '..' , 'HTML', 'annotations', f"{element_id}.html")
-            export_html_as_jpg( f"{invoice_index}_{element_id}" , OUT_DIRECTORY, driver, annotation_absolute_path)
+            export_html_as_jpg( f"{invoice_index}_{element_id}" , OUT_ANNOTATIONS_DIRECTORY, driver, annotation_absolute_path)
     return soup
 
 def main():
@@ -97,6 +108,7 @@ def main():
     html_output_path = os.path.join(os.path.sep, ROOT_DIR, '..' , 'HTML', 'output.html')
     os.makedirs(OUT_DIRECTORY, exist_ok=True)
     os.makedirs(ANNOTATIONS_PATH, exist_ok=True)
+    os.makedirs(OUT_ANNOTATIONS_DIRECTORY, exist_ok=True)
     for template in INVOICE_TEMPLATES:
         for language in INVOICE_LANGUAGES:
 
@@ -104,11 +116,9 @@ def main():
             loaded_dict, delivery_methods, payment_methods = read_language_pack(language)
             soup = translate_template(soup, loaded_dict)
 
-            # generate these dict fields to final invoice
-            with open(FIELD_INCLUSION, 'r', encoding='utf-8') as file:
-                fields_dict = json.load(file)   
-
             for i in range(INVOICES_TO_GENERATE):
+                # generate these dict fields to final invoice
+                fields_dict = randomize_include_fields(FIELD_INCLUSION)
                 generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup)
                 export_html_as_jpg(invoice_index, OUT_DIRECTORY, driver, html_output_path)
                 generate_annotations(fields_dict, './HTML/output.html', driver, invoice_index, ANNOTATIONS_PATH)
