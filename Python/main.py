@@ -45,7 +45,7 @@ def randomize_include_fields(path_to_json):
     with open(FIELD_INCLUSION, 'r', encoding='utf-8') as file:
         fields_dict = json.load(file)
         for element_id, include_field in fields_dict.items():
-            if include_field == "maybe":
+            if type(include_field) != bool and include_field.lower() == "maybe":
                 fields_dict[element_id] = random.choice([True, False])
                 # print(include_field)
     return fields_dict
@@ -74,13 +74,15 @@ def generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup):
                 paragraph.string = fake
                 if HIDE_EMPTY_ROWS and fake == "":
                     paragraph.parent['style'] = 'display: none;'
+                    fields_dict[element_id] = False
             else:
                 paragraph.parent['style'] = 'display: none;' 
+                fields_dict[element_id] = False
 
     # temporarily save HTML file, later used for image export
     with open('./HTML/output.html', 'w', encoding='utf-8') as file:
         file.write(soup.prettify())
-    return soup
+    return fields_dict
 
 def read_html_template(filename):
     with open(filename, 'r', encoding='utf-8') as html_file:
@@ -98,17 +100,17 @@ def generate_annotations(fields_dict, template, driver, invoice_index, annotatio
             visibility: hidden;
         }'''
         paragraph = soup.find(id=element_id)
-        if paragraph and include_field:
-            paragraph['style'] = 'border: 1px solid #333; visibility: visible;'
-            # temporarily save HTML file, later used for image export
+        if paragraph:
+            if include_field:
+                paragraph['style'] = 'border: 1px solid #333; visibility: visible;'
+                # temporarily save HTML file, later used for image export
             annotation_path = f"{annotations_path}{element_id}.html"
             with open(annotation_path, 'w', encoding='utf-8') as file:
                 file.write(soup.prettify())
-
             ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
             annotation_absolute_path = os.path.join(os.path.sep, ROOT_DIR, '..' , 'HTML', 'annotations', f"{element_id}.html")
             export_html_as_jpg( f"{invoice_index}_{element_id}" , OUT_ANNOTATIONS_DIRECTORY, driver, annotation_absolute_path)
-    return soup
+    return None
 
 def main():
     t_start = time.time()
@@ -133,7 +135,7 @@ def main():
                 soup = translate_template(soup, loaded_dict)
                 # generate these dict fields to final invoice
                 fields_dict = randomize_include_fields(FIELD_INCLUSION)
-                generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup)
+                fields_dict = generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup)
                 export_html_as_jpg(invoice_index, OUT_DIRECTORY, driver, html_output_path)
                 generate_annotations(fields_dict, './HTML/output.html', driver, invoice_index, ANNOTATIONS_PATH)
                 invoice_index += 1
