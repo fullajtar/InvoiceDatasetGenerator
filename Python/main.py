@@ -8,7 +8,7 @@ from FakeClass import FakeClass
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-from constants import *
+from constants import * 
 from augment import augment
 
 def init_webdriver():
@@ -53,6 +53,17 @@ def randomize_include_fields(path_to_json):
 def generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup): 
     # init fake invoice class
     faked = FakeClass(delivery_methods, payment_methods)
+
+    hide_labels = HIDE_LABELS
+    if type(hide_labels) != bool and hide_labels.lower() == "maybe":
+        hide_labels = random.choice([True, False])
+
+    if hide_labels:
+        style = soup.find('style')
+        style.string = style.string + '''       .label{
+            visibility: hidden;
+            display: none;
+        }'''
 
     # insert faked fields to HTML code
     for element_id, include_field in fields_dict.items():
@@ -110,13 +121,16 @@ def main():
     os.makedirs(ANNOTATIONS_PATH, exist_ok=True)
     os.makedirs(OUT_ANNOTATIONS_DIRECTORY, exist_ok=True)
     for template in INVOICE_TEMPLATES:
-        for language in INVOICE_LANGUAGES:
+        soup_template = read_html_template(template)
 
-            soup = read_html_template(template)
+        for language in INVOICE_LANGUAGES:
             loaded_dict, delivery_methods, payment_methods = read_language_pack(language)
-            soup = translate_template(soup, loaded_dict)
+            soup_template_translated = translate_template(soup_template, loaded_dict)
 
             for i in range(INVOICES_TO_GENERATE):
+                soup = soup_template_translated
+                soup = read_html_template(template)
+                soup = translate_template(soup, loaded_dict)
                 # generate these dict fields to final invoice
                 fields_dict = randomize_include_fields(FIELD_INCLUSION)
                 generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup)

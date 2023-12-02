@@ -83,6 +83,17 @@
         #container th {
             text-align: left;
         }
+
+        .required {
+            visibility: visible;
+            /* display: block; */
+        }
+        
+        .required th{
+            visibility: visible;
+            display: table-cell;
+        }
+
     </style>
 </head>
 <body>
@@ -91,7 +102,7 @@
         <img class="header-box" src="Placeholder_view_vector.svg.png" alt="">
 
         <header class="header-box">
-            <h1 id="invoice_title">Invoice</h1>
+            <h1 id="invoice_title" class="label, reqired">Invoice</h1>
             <h2 id="invoice_company_name_text">Your Company Name</h2>
         </header>
         
@@ -101,170 +112,170 @@
     <div class="container">
         <table id="supplier-info" class="box">
             <tr>
-                <th colspan="2"><h3 id="supplier_title">Supplier:</h3></th>
+                <th colspan="2"><h3 id="supplier_title" class="label, required">Supplier:</h3></th>
             </tr>
             <tr>
-                <td id="company_name_title">Company Name:</td>
+                <td id="company_name_title" class="label">Company Name:</td>
                 <td id="company_name_text">Your Company, Inc.</td>
             </tr>
             <tr>
-                <td id="address_title">Address:</td>
+                <td id="address_title" class="label">Address:</td>
                 <td id="address_text">456 Business Avenue, Townsville, State, 54321</td>
             </tr>
             <tr>
-                <td id="supplier_business_id_title">Supplier ID:</td>
+                <td id="supplier_business_id_title" class="label">Supplier ID:</td>
                 <td id="supplier_business_id_text">SUP123</td>
             </tr>
             <tr>
-                <td id="tax_id_title">VAT HQ:</td>
+                <td id="tax_id_title" class="label">VAT HQ:</td>
                 <td id="tax_id_text">HQ123</td>
             </tr>
             <tr>
-                <td id="vat_reg_no_title">VAT ID:</td>
+                <td id="vat_reg_no_title" class="label">VAT ID:</td>
                 <td id="vat_reg_no_text">VAT123456</td>
             </tr>
             <tr>
-                <td id="website_title">Website:</td>
+                <td id="website_title" class="label">Website:</td>
                 <td id="website_text"><a href="http://www.yourcompany.com" target="_blank">www.yourcompany.com</a></td>
             </tr>
             <tr>
-                <td id="email_title">Email:</td>
+                <td id="email_title" class="label">Email:</td>
                 <td id="email_text"><a href="mailto:info@yourcompany.com">info@yourcompany.com</a></td>
             </tr>
             <tr>
-                <td id="phone_number_title">Phone Number:</td>
+                <td id="phone_number_title" class="label">Phone Number:</td>
                 <td id="phone_number_text">+1 (555) 123-4567</td>
             </tr>
             <tr>
-                <td id="commercial_register_title">Commercial Register:</td>
+                <td id="commercial_register_title" class="label">Commercial Register:</td>
                 <td id="commercial_register_text">CR123</td>
             </tr>
         </table>
         
         <table id="bank-details" class="box">
             <tr>
-                <th colspan="2"><h3 id="bank_connection_title">Bank Connection:</h3></th>
+                <th colspan="2"><h3 id="bank_connection_title" class="label, required">Bank Connection:</h3></th>
             </tr>
             <tr>
-                <td id="iban_title">IBAN:</td>
+                <td id="iban_title" class="label">IBAN:</td>
                 <td id="iban_text">Your IBAN</td>
             </tr>
             <tr>
-                <td id="variable_symbol_title">Variable Symbol:</td>
+                <td id="variable_symbol_title" class="label">Variable Symbol:</td>
                 <td id="variable_symbol_text">123456</td>
             </tr>
             <tr>
-                <td id="constant_symbol_title">Constant Symbol:</td>
+                <td id="constant_symbol_title" class="label">Constant Symbol:</td>
                 <td id="constant_symbol_text">789</td>
             </tr>
             <tr>
-                <td id="specific_symbol_title">Specific Symbol:</td>
+                <td id="specific_symbol_title" class="label">Specific Symbol:</td>
                 <td id="specific_symbol_text">012345</td>
             </tr>
             <tr>
-                <td id="account_number_title">Account Number:</td>
+                <td id="account_number_title" class="label">Account Number:</td>
                 <td id="account_number_text">Your Account Number</td>
             </tr>
             <tr>
-                <td id="bank_name_title">Bank Name:</td>
+                <td id="bank_name_title" class="label">Bank Name:</td>
                 <td id="bank_name_text">Your Bank</td>
             </tr>
             <tr>
-                <td id="swift_title">SWIFT:</td>
+                <td id="swift_title" class="label">SWIFT:</td>
                 <td id="swift_text">Your SWIFT Code</td>
             </tr>
         </table>
         
         <table id="recipient" class="box">
             <tr>
-                <th colspan="2"><h3 id="recipient_title">Recipient:</h3></th>
+                <th colspan="2"><h3 id="recipient_title" class="label, required">Recipient:</h3></th>
             </tr>
             <tr>
-                <td id="recipient_company_name_title">Company Name:</td>
+                <td id="recipient_company_name_title" class="label">Company Name:</td>
                 <td id="recipient_company_name_text">Recipient Company, Ltd.</td>
             </tr>
             <tr>
-                <td id="recipient_address_title">Address:</td>
+                <td id="recipient_address_title" class="label">Address:</td>
                 <td id="recipient_address_text">789 Client Street, Cityville, State, 67890</td>
             </tr>
             <tr>
-                <td id="recipient_business_id_title">Recipient ID:</td>
+                <td id="recipient_business_id_title" class="label">Recipient ID:</td>
                 <td id="recipient_business_id_text">REC789</td>
             </tr>
             <tr>
-                <td id="recipient_tax_id_title">VAT HQ:</td>
+                <td id="recipient_tax_id_title" class="label">VAT HQ:</td>
                 <td id="recipient_tax_id_text">HQ789</td>
             </tr>
             <tr>
-                <td id="recipient_vat_id_title">VAT ID:</td>
+                <td id="recipient_vat_id_title" class="label">VAT ID:</td>
                 <td id="recipient_vat_id_text">VAT789012</td>
             </tr>
             <tr>
-                <td id="recipient_website_title">Website:</td>
+                <td id="recipient_website_title" class="label">Website:</td>
                 <td id="recipient_website_text"><a href="http://www.recipientcompany.com" target="_blank">www.recipientcompany.com</a></td>
             </tr>
             <tr>
-                <td id="recipient_email_title">Email:</td>
+                <td id="recipient_email_title" class="label">Email:</td>
                 <td id="recipient_email_text"><a href="mailto:info@recipientcompany.com">info@recipientcompany.com</a></td>
             </tr>
             <tr>
-                <td id="recipient_phone_number_title">Phone Number:</td>
+                <td id="recipient_phone_number_title" class="label">Phone Number:</td>
                 <td id="recipient_phone_number_text">+1 (555) 987-6543</td>
             </tr>
             <tr>
-                <td id="recipient_commercial_register_title">Commercial Register:</td>
+                <td id="recipient_commercial_register_title" class="label">Commercial Register:</td>
                 <td id="recipient_commercial_register_text">CR789</td>
             </tr>
         </table>
     
         <table id="invoice-details" class="box">
             <tr>
-                <th colspan="2"><h3 id="invoice_info_title">Invoice Info:</h3></th>
+                <th colspan="2"><h3 id="invoice_info_title" class="label, required">Invoice Info:</h3></th>
             </tr>
             <tr>
-                <td id="issue_date_title">Issue Date:</td>
+                <td id="issue_date_title" class="label">Issue Date:</td>
                 <td id="issue_date_text">January 1, 2023</td>
             </tr>
             <tr>
-                <td id="delivery_date_title">Delivery Date:</td>
+                <td id="delivery_date_title" class="label">Delivery Date:</td>
                 <td id="delivery_date_text">January 5, 2023</td>
             </tr>
             <tr>
-                <td id="due_date_title">Due Date:</td>
+                <td id="due_date_title" class="label">Due Date:</td>
                 <td id="due_date_text">January 31, 2023</td>
             </tr>
             <tr>
-                <td id="taxation_date_title">Date of Taxation:</td>
+                <td id="taxation_date_title" class="label">Date of Taxation:</td>
                 <td id="taxation_date_text">January 1, 2023</td>
             </tr>
             <tr>
-                <td id="payment_receipt_date_title">Date of Receipt of Payment:</td>
+                <td id="payment_receipt_date_title" class="label">Date of Receipt of Payment:</td>
                 <td id="payment_receipt_date_text"></td>
             </tr>
             <tr>
-                <td id="payment_method_title">Payment Method:</td>
+                <td id="payment_method_title" class="label">Payment Method:</td>
                 <td id="payment_method_text"></td>
             </tr>
             <tr>
-                <td id="delivery_method_title">Delivery Method:</td>
+                <td id="delivery_method_title" class="label">Delivery Method:</td>
                 <td id="delivery_method_text"></td>
             </tr>
             <tr>
-                <td id="currency_title">Currency:</td>
+                <td id="currency_title" class="label">Currency:</td>
                 <td id="currency_text"></td>
             </tr>
             <tr>
-                <td id="invoice_number_title">Invoice Number:</td>
+                <td id="invoice_number_title" class="label">Invoice Number:</td>
                 <td id="invoice_number_text"></td>
             </tr>
         </table>
 
         <table id="delivery-address" class="box">
             <tr>
-                <th colspan="2"><h3 id="delivery_title">Delivery Address:</h3></th>
+                <th colspan="2"><h3 id="delivery_title" class="label, required">Delivery Address:</h3></th>
             </tr>
             <tr>
-                <td id="delivery_address_title">Address:</td>
+                <td id="delivery_address_title" class="label">Address:</td>
                 <td id="delivery_address_text">789 Client Street, Cityville, State, 67890</td>
             </tr>
         </table>
@@ -272,21 +283,21 @@
 
     <div class="container">
         <table id="invoice-items">
-            <thead>
-                <tr>
+            <thead class="required" >
+                <tr >
                     <th>/</th>
-                    <th id="item_code_title">Code</th>
-                    <th id="item_description_title">Description</th>
-                    <th id="quantity_title">Quantity</th>
-                    <th id="unit_price_vat_excl_title">Unit Price Vat excl.</th>
-                    <th id="discount_percentage_title">Discount %</th>
-                    <th id="discount_title">Discount</th>
-                    <th id="discount_reason_title">Discount reason</th>
-                    <th id="price_vat_excl_title">Price Vat excl.</th>
-                    <th id="vat_percentage_title">VAT %</th>
-                    <th id="vat_title">VAT</th>
-                    <th id="other_taxes_title">Other taxes</th>
-                    <th id="total_title">Total</th>
+                    <th id="item_code_title" class="label">Code</th>
+                    <th id="item_description_title" class="label">Description</th>
+                    <th id="quantity_title" class="label">Quantity</th>
+                    <th id="unit_price_vat_excl_title" class="label">Unit Price Vat excl.</th>
+                    <th id="discount_percentage_title" class="label">Discount %</th>
+                    <th id="discount_title" class="label">Discount</th>
+                    <th id="discount_reason_title" class="label">Discount reason</th>
+                    <th id="price_vat_excl_title" class="label">Price Vat excl.</th>
+                    <th id="vat_percentage_title" class="label">VAT %</th>
+                    <th id="vat_title" class="label">VAT</th>
+                    <th id="other_taxes_title" class="label">Other taxes</th>
+                    <th id="total_title" class="label">Total</th>
                 </tr>
             </thead>
             <tbody>
@@ -314,13 +325,13 @@
         </footer>
 
         <div id="invoice-total">
-            <tr><strong><td id="to_pay_title">Total: </td></strong><td id="to_pay_text">$120.00</td></tr>
+            <tr><strong><td id="to_pay_title" class="label reqired">Total: </td></strong><td id="to_pay_text">$120.00</td></tr>
         </div>
     
     </div>
 
     <div class="container">
-        <h3 id="note_title">Note:</h3>
+        <h3 id="note_title" class="label">Note:</h3>
         <p id="note_text">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec vitae arcu. Integer pellentesque quam vel velit. Nunc auctor. Suspendisse sagittis ultrices augue. Aenean id metus id velit ullamcorper pulvinar. Aliquam erat volutpat. Sed ac dolor sit amet purus malesuada congue. Phasellus enim erat, vestibulum vel, aliquam a, posuere eu, velit. Phasellus et lorem id felis nonummy placerat.</p>
     </div>
 
