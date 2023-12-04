@@ -94,10 +94,12 @@ def generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup):
         paragraph = soup.find(id=element_id)
         if paragraph:
             if include_field:
-                fake = faked.get_fake_value_for_key(element_id)
-                paragraph.string = str(fake)
-                if HIDE_EMPTY_ROWS and fake == "":
+                fake = str(faked.get_fake_value_for_key(element_id))
+                paragraph.string = fake
+                if (HIDE_EMPTY_ROWS and hide_labels) and fake == '':
                     paragraph.parent['style'] = 'display: none;'
+                    fields_dict[element_id] = False
+                elif fake == '':
                     fields_dict[element_id] = False
             else:
                 paragraph.parent['style'] = 'display: none;' 
