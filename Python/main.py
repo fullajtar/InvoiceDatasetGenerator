@@ -14,6 +14,12 @@ from augment import augment
 def init_webdriver():
     chrome_options = Options()
     chrome_options.add_argument("--headless")  # Run Chrome in headless mode (no GUI)
+    chrome_options.add_argument("--host-resolver-rules=MAP * 127.0.0.1")
+    chrome_options.add_argument("--disable-extensions")  # Disable browser extensions
+    chrome_options.add_argument("--disable-dev-shm-usage")  # Disable /dev/shm usage
+    chrome_options.add_argument("--disable-software-rasterizer")  # Disable software rasterizer
+    chrome_options.add_argument("--disable-infobars")  # Disable the infobar for Chrome being controlled by automated software
+
     driver = webdriver.Chrome(options=chrome_options)
     width_mm, height_mm, dpi = 215, 302, 97
     width_px, height_px = int((width_mm / 25.4) * dpi), int((height_mm / 25.4) * dpi)
@@ -50,6 +56,24 @@ def randomize_include_fields(path_to_json):
                 # print(include_field)
     return fields_dict
 
+def generate_html_item_list(soup:BeautifulSoup, invoice:FakeClass):
+    tbody_element = soup.find(id='invoice-items-tbody')
+    if tbody_element:
+        i = 1
+        for item in invoice.item_list:
+            tr_element = soup.new_tag('tr')
+            td_element = soup.new_tag('td')
+            td_element.string = str(i)
+            tr_element.append(td_element)
+
+            for attr_name, attr_value in vars(item).items():
+                td_element = soup.new_tag('td')
+                td_element.string = str(attr_value)
+                tr_element.append(td_element)
+            tbody_element.append(tr_element)
+            i += 1
+        return soup
+
 def generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup): 
     # init fake invoice class
     faked = FakeClass(delivery_methods, payment_methods)
@@ -71,13 +95,14 @@ def generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup):
         if paragraph:
             if include_field:
                 fake = faked.get_fake_value_for_key(element_id)
-                paragraph.string = fake
+                paragraph.string = str(fake)
                 if HIDE_EMPTY_ROWS and fake == "":
                     paragraph.parent['style'] = 'display: none;'
                     fields_dict[element_id] = False
             else:
                 paragraph.parent['style'] = 'display: none;' 
                 fields_dict[element_id] = False
+    soup = generate_html_item_list(soup, faked)
 
     # temporarily save HTML file, later used for image export
     with open('./HTML/output.html', 'w', encoding='utf-8') as file:
