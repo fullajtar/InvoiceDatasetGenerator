@@ -7,9 +7,17 @@ from bs4 import BeautifulSoup
 from FakeClass import FakeClass
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import shutil
 
 from constants import * 
 from augment import augment
+
+def remove_dir(dir_path):
+    try:
+        shutil.rmtree(dir_path)
+        print(f"Directory '{dir_path}' removed successfully.")
+    except OSError as e:
+        print(f"Error: {e}")
 
 def init_webdriver():
     chrome_options = Options()
@@ -146,9 +154,17 @@ def main():
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     ANNOTATIONS_PATH = './HTML/annotations/'
     html_output_path = os.path.join(os.path.sep, ROOT_DIR, '..' , 'HTML', 'output.html')
+
+    if CLEAR_DIRECTORIES:
+        remove_dir(OUT_DIRECTORY)
+        remove_dir(ANNOTATIONS_PATH)
+        remove_dir(OUT_ANNOTATIONS_DIRECTORY)
+        remove_dir(AUGMENTED_IMAGES_DIRECTORY)
+        
     os.makedirs(OUT_DIRECTORY, exist_ok=True)
     os.makedirs(ANNOTATIONS_PATH, exist_ok=True)
     os.makedirs(OUT_ANNOTATIONS_DIRECTORY, exist_ok=True)
+    os.makedirs(AUGMENTED_IMAGES_DIRECTORY, exist_ok=True)
     for template in INVOICE_TEMPLATES:
         soup_template = read_html_template(template)
 
