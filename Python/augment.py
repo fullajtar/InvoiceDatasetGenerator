@@ -7,6 +7,7 @@ from constants import *
 import imageio
 import json
 from dir_functions import init_annotations_dirs, init_dir, remove_dir
+import concurrent.futures
 
 def add_noise(img):
     '''Add random noise to an image'''
@@ -69,6 +70,26 @@ def prepare_directories():
     init_dir(AUGMENTED_IMAGES_DIRECTORY)
     init_annotations_dirs(AUGMENTED_ANNOTATIONS_DIRECTORY)
 
+def augment_image_and_annotations(i, X, y, datagen, start_index):
+    seed_iteration = random.randint(0, 4294967295)
+
+    # augment and save original image
+    original_image = np.expand_dims(X[i], axis=0)
+    image_generator = datagen.flow(original_image, seed=seed_iteration)
+    augmented_image = image_generator.next()[0]
+    augmented_image = (augmented_image[:, :, 0] * 255).astype(np.uint8)
+    image_save_path = os.path.join(AUGMENTED_IMAGES_DIRECTORY, f"{i}.png")
+    imageio.imwrite(image_save_path, augmented_image)
+
+    # augment and save all annotations of respective image
+    for element_id, _ in y.items():
+        original_annotation = np.expand_dims(y[element_id][i], axis=0)
+        annotation_generator = datagen.flow(original_annotation, seed=seed_iteration)
+        augmented_annotation = annotation_generator.next()[0]
+        annotation_save_path = os.path.join(AUGMENTED_ANNOTATIONS_DIRECTORY, element_id, f"{i}.png")
+        augmented_annotation = (augmented_annotation[:, :, 0] * 255).astype(np.uint8)
+        imageio.imwrite(annotation_save_path, augmented_annotation)
+
 def augment():
     prepare_directories()
     dataset_folder = './generated/original/'
@@ -87,32 +108,12 @@ def augment():
         fill_mode='nearest'
     )
 
-    # Iterate over the images and annotations simultaneously
-    for i in range(start_index , start_index + len(X)):
-
-        # generate seed to secure identical augments of file and annotations
-        seed_iteration = random.randint(0, 4294967295)
-
-        # augment and save original image
-        original_image = np.expand_dims(X[i], axis=0)
-        image_generator = datagen.flow(original_image, seed=seed_iteration)
-        augmented_image = image_generator.next()[0]
-        # augmented_image = add_noise(augmented_image)
-        augmented_image = (augmented_image[:, :, 0] * 255).astype(np.uint8)
-        image_save_path = os.path.join(AUGMENTED_IMAGES_DIRECTORY, f"{i}.png")
-        imageio.imwrite(image_save_path, augmented_image)
-
-        # augment and save all annotations of respective image
-        for element_id, _ in y.items():
-            original_annotation = np.expand_dims(y[element_id][i], axis=0)
-            annotation_generator = datagen.flow(original_annotation, seed=seed_iteration)
-            augmented_annotation = annotation_generator.next()[0]
-            annotation_save_path = os.path.join(AUGMENTED_ANNOTATIONS_DIRECTORY, element_id, f"{i}.png")
-            augmented_annotation = (augmented_annotation[:, :, 0] * 255).astype(np.uint8)
-            imageio.imwrite(annotation_save_path, augmented_annotation)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [executor.submit(augment_image_and_annotations, i, X, y, datagen, start_index) for i in range(start_index, start_index + len(X))]
+        concurrent.futures.wait(futures)
 
 # import time
 # t_start = time.time()
-# augment() #for debug only, if uncommented augmentation will be called 2 times
+# augment()
 # t = time.time() - t_start
-# print(" invoices augmented in -->  ", f"{t:.3f}", 'seconds', end="  ")
+# print("invoices augmented in --> ", f"{t:.3f}", 'seconds', end=" ")
