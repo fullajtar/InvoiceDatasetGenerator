@@ -11,13 +11,7 @@ import shutil
 
 from constants import * 
 from augment import augment
-
-def remove_dir(dir_path):
-    try:
-        shutil.rmtree(dir_path)
-        print(f"Directory '{dir_path}' removed successfully.")
-    except OSError as e:
-        print(f"Error: {e}")
+from dir_functions import init_annotations_dirs, init_dir, remove_dir
 
 def init_webdriver():
     chrome_options = Options()
@@ -147,40 +141,18 @@ def generate_annotations(fields_dict, template, driver, invoice_index, annotatio
             export_html_as_jpg( f"{element_id}/{invoice_index}" , OUT_ANNOTATIONS_DIRECTORY, driver, annotation_absolute_path)
     return None
 
-def init_annotations_dirs(annotations_dirpath):
-    with open(FIELD_INCLUSION, 'r', encoding='utf-8') as file:
-        fields_dict = json.load(file)
-        for element_id, include_field in fields_dict.items():
-            dir_path = os.path.join(annotations_dirpath, element_id)
-            try:
-                os.makedirs(dir_path, exist_ok=True)
-                print(f"Directory '{dir_path}' created successfully.")
-            except OSError as e:
-                print(f"Error: {e}")
-
-def init_dir(dir_path):
-    try:
-        os.makedirs(dir_path, exist_ok=True)
-        print(f"Directory '{dir_path}' created successfully.")
-    except OSError as e:
-        print(f"Error: {e}")
-
 def prepare_directories():
     if CLEAR_DIRECTORIES:
         remove_dir(OUT_DIRECTORY)
         remove_dir(ANNOTATIONS_PATH)
         remove_dir(OUT_ANNOTATIONS_DIRECTORY)
-        remove_dir(AUGMENTED_IMAGES_DIRECTORY)
-        remove_dir(AUGMENTED_LABELS_DIRECTORY)
         print('----------------')
         
     init_dir(OUT_DIRECTORY)
     init_dir(ANNOTATIONS_PATH)
     init_dir(OUT_ANNOTATIONS_DIRECTORY)
-    init_dir(AUGMENTED_IMAGES_DIRECTORY)
 
     init_annotations_dirs(OUT_ANNOTATIONS_DIRECTORY)
-    init_annotations_dirs(AUGMENTED_LABELS_DIRECTORY)
 
 ANNOTATIONS_PATH = './HTML/annotations/'
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))

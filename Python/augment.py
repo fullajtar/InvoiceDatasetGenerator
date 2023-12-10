@@ -6,6 +6,7 @@ import random
 from constants import *
 import imageio
 import json
+from dir_functions import init_annotations_dirs, init_dir, remove_dir
 
 def add_noise(img):
     '''Add random noise to an image'''
@@ -23,11 +24,16 @@ def init_annotations_dictionary():
             fields_dict[element_id] = []
     return fields_dict
 
+def omit_file_extension(filename):
+    number = filename.split('.')[0]
+    return int(number)
+
 def load_data(dataset_folder):
     # find paths to original images and annotations
     images_folder = os.path.join(dataset_folder, 'images')
     annotations_folder = os.path.join(dataset_folder, 'annotations')
     image_filenames = os.listdir(images_folder)
+    image_filenames = sorted(image_filenames, key=omit_file_extension)
 
     X = []
     y = init_annotations_dictionary()
@@ -51,12 +57,23 @@ def load_data(dataset_folder):
     for element_id, annotation_list in y.items():
         y[element_id] = np.array(annotation_list) 
 
-    return np.array(X), y
+    print( f'{len(image_filenames)} images loaded.'   )
+    start_index = omit_file_extension(image_filenames[0]) 
+    return np.array(X), y, start_index
+
+def prepare_directories():
+    if CLEAR_DIRECTORIES:
+        remove_dir(AUGMENTED_IMAGES_DIRECTORY)
+        remove_dir(AUGMENTED_ANNOTATIONS_DIRECTORY)
+        print('----------------')
+    init_dir(AUGMENTED_IMAGES_DIRECTORY)
+    init_annotations_dirs(AUGMENTED_ANNOTATIONS_DIRECTORY)
 
 def augment():
+    prepare_directories()
     dataset_folder = './generated/original/'
     print('Loading dataset . . .')
-    X, y = load_data(dataset_folder)
+    X, y, start_index = load_data(dataset_folder)
     print('Augmenting . . .')
 
     # Create an ImageDataGenerator
@@ -71,7 +88,7 @@ def augment():
     )
 
     # Iterate over the images and annotations simultaneously
-    for i in range(len(X)):
+    for i in range(start_index , start_index + len(X)):
 
         # generate seed to secure identical augments of file and annotations
         seed_iteration = random.randint(0, 4294967295)
@@ -90,8 +107,12 @@ def augment():
             original_annotation = np.expand_dims(y[element_id][i], axis=0)
             annotation_generator = datagen.flow(original_annotation, seed=seed_iteration)
             augmented_annotation = annotation_generator.next()[0]
-            annotation_save_path = os.path.join(AUGMENTED_LABELS_DIRECTORY, element_id, f"{i}.png")
+            annotation_save_path = os.path.join(AUGMENTED_ANNOTATIONS_DIRECTORY, element_id, f"{i}.png")
             augmented_annotation = (augmented_annotation[:, :, 0] * 255).astype(np.uint8)
             imageio.imwrite(annotation_save_path, augmented_annotation)
 
+# import time
+# t_start = time.time()
 # augment() #for debug only, if uncommented augmentation will be called 2 times
+# t = time.time() - t_start
+# print(" invoices augmented in -->  ", f"{t:.3f}", 'seconds', end="  ")
