@@ -1,20 +1,11 @@
-import tensorflow as tf
 import os
-
-from tensorflow.keras import layers
-from tensorflow.keras.preprocessing.image import save_img
+import numpy as np
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+import tensorflow as tf
+import random
 from constants import *
-
-# SOURCES: 
-    # https://www.tensorflow.org/tutorials/images/data_augmentation
-    # https://pytorch.org/vision/main/transforms.html
-    # https://stackoverflow.com/a/61425288
-
-RESCALE_CONSTANT = 1
-ORIGINAL_HEIGHT, ORIGINAL_WIDTH = 1153, 821
-CROP_RESCALE_CONSTANT = 1
-TRANSLATION_RESCALE_CONSTANT = 1
-IMG_HEIGHT, IMG_WIDTH = int(ORIGINAL_HEIGHT * RESCALE_CONSTANT), int(ORIGINAL_WIDTH * RESCALE_CONSTANT)
+import imageio
+import json
 
 def add_noise(img):
     '''Add random noise to an image'''
@@ -25,48 +16,82 @@ def add_noise(img):
     img = tf.clip_by_value(img, 0.0, 255.0)
     return img
 
-def get_augment_model():
-    augment_model = tf.keras.Sequential([
-        layers.Resizing(IMG_HEIGHT, IMG_WIDTH ),
-        layers.RandomCrop(int(ORIGINAL_HEIGHT * CROP_RESCALE_CONSTANT), int(ORIGINAL_WIDTH * CROP_RESCALE_CONSTANT)),  # Cropping
-        layers.RandomRotation(0.01, fill_mode = "constant", fill_value = 255),
-        layers.RandomZoom(height_factor = (0.05 ,0.2), fill_mode = "constant", fill_value = 255),  # Scaling (random zoom)
-        layers.RandomTranslation((-0.05, 0.05),(-0.05, 0.05), fill_mode = "constant", fill_value = 255),  # Translation
-        layers.Lambda(lambda x: tf.image.random_contrast(x, 0.8, 1.2)),  # Additional augmentation (e.g., contrast)
-        layers.Lambda(lambda x: tf.image.random_brightness(x, 0.1)),  # Additional augmentation (e.g., brightness)
+def init_annotations_dictionary():
+    with open(FIELD_INCLUSION, 'r', encoding='utf-8') as file:
+        fields_dict = json.load(file)
+        for element_id, _ in fields_dict.items():
+            fields_dict[element_id] = []
+    return fields_dict
 
-        # unusable for grayscale
-        # layers.Lambda(lambda x: tf.image.random_saturation(x, 0.5, 1.5)),  # Additional augmentation (e.g., saturation)
-        # layers.Conv2D(filters=3, kernel_size=(3, 3), activation='relu', padding='same'),  # Example layer after augmentation
+def load_data(dataset_folder):
+    # find paths to original images and annotations
+    images_folder = os.path.join(dataset_folder, 'images')
+    annotations_folder = os.path.join(dataset_folder, 'annotations')
+    image_filenames = os.listdir(images_folder)
 
-        # was not sufficient
-        # layers.GaussianNoise(0.8),  # Noise injection
-    ])
-    return augment_model
+    X = []
+    y = init_annotations_dictionary()
+
+    for image_filename in image_filenames:
+        img_path = os.path.join(images_folder, image_filename)
+        annotation_path = os.path.join(annotations_folder, 'address_text', image_filename)
+
+        # Load and preprocess the image
+        img = load_img(img_path, target_size=(ORIGINAL_HEIGHT, ORIGINAL_WIDTH), color_mode='grayscale')
+        img_array = img_to_array(img) / 255.0  # Normalize pixel values
+        X.append(img_array)
+
+        # load and preprocess all annotations of respective image
+        for element_id, _ in y.items():
+            annotation_path = os.path.join(annotations_folder, element_id, image_filename)
+            annotation = load_img(annotation_path, target_size=(ORIGINAL_HEIGHT, ORIGINAL_WIDTH), color_mode='grayscale')
+            annotation_array = img_to_array(annotation) / 255.0  # Normalize pixel values
+            y[element_id].append(annotation_array)
+
+    for element_id, annotation_list in y.items():
+        y[element_id] = np.array(annotation_list) 
+
+    return np.array(X), y
 
 def augment():
-    data_augmentation = get_augment_model()
+    dataset_folder = './generated/original/'
+    print('Loading dataset . . .')
+    X, y = load_data(dataset_folder)
+    print('Augmenting . . .')
 
-    # function to read and augment an image
-    # have to be inside augment() to access data_augmentation without lambda usage
-    def load_and_augment_image(file_path):
-        rgb_image = tf.io.read_file(file_path)
-        rgb_image = tf.image.decode_png(rgb_image, channels=3)
-        grayscale_image = tf.image.rgb_to_grayscale(rgb_image)
-        augmented_image = data_augmentation(grayscale_image)
-        augmented_image = add_noise(augmented_image)
-        return augmented_image
-    
-    # get a list of all file paths in the folder
-    file_paths = [os.path.join(OUT_DIRECTORY, file) for file in os.listdir(OUT_DIRECTORY)]
-    # create a dataset of file paths
-    file_paths_dataset = tf.data.Dataset.from_tensor_slices(file_paths)
-    # Map the function over the dataset to load and augment all images
-    images_dataset = file_paths_dataset.map(load_and_augment_image)
+    # Create an ImageDataGenerator
+    datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+        rotation_range=10,
+        width_shift_range=0.05,
+        height_shift_range=0.05,
+        shear_range=0.1,
+        zoom_range=0.2,
+        horizontal_flip=False,
+        fill_mode='nearest'
+    )
 
-    os.makedirs(AUGMENTED_IMAGES_DIRECTORY, exist_ok=True)
-    for i, image in enumerate(images_dataset):
-        file_path = os.path.join(AUGMENTED_IMAGES_DIRECTORY, f'augmented_image_{i}.png')
-        save_img(file_path, image.numpy())
+    # Iterate over the images and annotations simultaneously
+    for i in range(len(X)):
 
-# augment() #augment debug only
+        # generate seed to secure identical augments of file and annotations
+        seed_iteration = random.randint(0, 4294967295)
+
+        # augment and save original image
+        original_image = np.expand_dims(X[i], axis=0)
+        image_generator = datagen.flow(original_image, seed=seed_iteration)
+        augmented_image = image_generator.next()[0]
+        # augmented_image = add_noise(augmented_image)
+        augmented_image = (augmented_image[:, :, 0] * 255).astype(np.uint8)
+        image_save_path = os.path.join(AUGMENTED_IMAGES_DIRECTORY, f"{i}.png")
+        imageio.imwrite(image_save_path, augmented_image)
+
+        # augment and save all annotations of respective image
+        for element_id, _ in y.items():
+            original_annotation = np.expand_dims(y[element_id][i], axis=0)
+            annotation_generator = datagen.flow(original_annotation, seed=seed_iteration)
+            augmented_annotation = annotation_generator.next()[0]
+            annotation_save_path = os.path.join(AUGMENTED_LABELS_DIRECTORY, element_id, f"{i}.png")
+            augmented_annotation = (augmented_annotation[:, :, 0] * 255).astype(np.uint8)
+            imageio.imwrite(annotation_save_path, augmented_annotation)
+
+# augment() #for debug only, if uncommented augmentation will be called 2 times

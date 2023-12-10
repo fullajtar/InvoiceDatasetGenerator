@@ -144,31 +144,61 @@ def generate_annotations(fields_dict, template, driver, invoice_index, annotatio
                 file.write(soup.prettify())
             ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
             annotation_absolute_path = os.path.join(os.path.sep, ROOT_DIR, '..' , 'HTML', 'annotations', f"{element_id}.html")
-            export_html_as_jpg( f"{invoice_index}_{element_id}" , OUT_ANNOTATIONS_DIRECTORY, driver, annotation_absolute_path)
+            export_html_as_jpg( f"{element_id}/{invoice_index}" , OUT_ANNOTATIONS_DIRECTORY, driver, annotation_absolute_path)
     return None
 
-def main():
-    t_start = time.time()
-    driver = init_webdriver()
-    invoice_index = INVOICE_NAME_START_AT
-    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-    ANNOTATIONS_PATH = './HTML/annotations/'
-    html_output_path = os.path.join(os.path.sep, ROOT_DIR, '..' , 'HTML', 'output.html')
+def init_annotations_dirs(annotations_dirpath):
+    with open(FIELD_INCLUSION, 'r', encoding='utf-8') as file:
+        fields_dict = json.load(file)
+        for element_id, include_field in fields_dict.items():
+            dir_path = os.path.join(annotations_dirpath, element_id)
+            try:
+                os.makedirs(dir_path, exist_ok=True)
+                print(f"Directory '{dir_path}' created successfully.")
+            except OSError as e:
+                print(f"Error: {e}")
 
+def init_dir(dir_path):
+    try:
+        os.makedirs(dir_path, exist_ok=True)
+        print(f"Directory '{dir_path}' created successfully.")
+    except OSError as e:
+        print(f"Error: {e}")
+
+def prepare_directories():
     if CLEAR_DIRECTORIES:
         remove_dir(OUT_DIRECTORY)
         remove_dir(ANNOTATIONS_PATH)
         remove_dir(OUT_ANNOTATIONS_DIRECTORY)
         remove_dir(AUGMENTED_IMAGES_DIRECTORY)
+        remove_dir(AUGMENTED_LABELS_DIRECTORY)
+        print('----------------')
         
-    os.makedirs(OUT_DIRECTORY, exist_ok=True)
-    os.makedirs(ANNOTATIONS_PATH, exist_ok=True)
-    os.makedirs(OUT_ANNOTATIONS_DIRECTORY, exist_ok=True)
-    os.makedirs(AUGMENTED_IMAGES_DIRECTORY, exist_ok=True)
+    init_dir(OUT_DIRECTORY)
+    init_dir(ANNOTATIONS_PATH)
+    init_dir(OUT_ANNOTATIONS_DIRECTORY)
+    init_dir(AUGMENTED_IMAGES_DIRECTORY)
+
+    init_annotations_dirs(OUT_ANNOTATIONS_DIRECTORY)
+    init_annotations_dirs(AUGMENTED_LABELS_DIRECTORY)
+
+ANNOTATIONS_PATH = './HTML/annotations/'
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def main():
+    t_start = time.time()
+    driver = init_webdriver()
+    invoice_index = INVOICE_NAME_START_AT
+    html_output_path = os.path.join(os.path.sep, ROOT_DIR, '..' , 'HTML', 'output.html')
+
+    prepare_directories()
+        
     for template in INVOICE_TEMPLATES:
         soup_template = read_html_template(template)
+        print(f'Using {template} template . . .')
 
         for language in INVOICE_LANGUAGES:
+            print(f'Generating invoices for {language} language . . .')
             loaded_dict, delivery_methods, payment_methods = read_language_pack(language)
             soup_template_translated = translate_template(soup_template, loaded_dict)
 
@@ -188,9 +218,9 @@ def main():
     t = time.time() - t_start
     print(str(invoice_index - INVOICE_NAME_START_AT)+" invoices generated in -->  ", f"{t:.3f}", 'seconds')
 
-    # t_start = time.time()
-    # augment()
-    # t = time.time() - t_start
-    # print(str(invoice_index - INVOICE_NAME_START_AT)+" invoices augmented in -->  ", f"{t:.3f}", 'seconds', end="  ")
+    t_start = time.time()
+    augment()
+    t = time.time() - t_start
+    print(str(invoice_index - INVOICE_NAME_START_AT)+" invoices augmented in -->  ", f"{t:.3f}", 'seconds', end="  ")
 
 main()
