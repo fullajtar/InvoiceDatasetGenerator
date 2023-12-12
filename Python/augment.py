@@ -22,12 +22,38 @@ def init_annotations_dictionary():
     with open(FIELD_INCLUSION, 'r', encoding='utf-8') as file:
         fields_dict = json.load(file)
         for element_id, _ in fields_dict.items():
-            fields_dict[element_id] = []
+            fields_dict[element_id] = {}
     return fields_dict
 
 def omit_file_extension(filename):
     number = filename.split('.')[0]
     return int(number)
+
+def load_and_preprocess_image(image_filename, images_folder, annotations_folder, X, y):
+    img_path = os.path.join(images_folder, image_filename)
+    annotation_path = os.path.join(annotations_folder, 'address_text', image_filename)
+    image_number = omit_file_extension(image_filename)
+
+    # Load and preprocess the image
+    img = load_img(img_path, target_size=(ORIGINAL_HEIGHT, ORIGINAL_WIDTH), color_mode='grayscale')
+    img_array = img_to_array(img) / 255.0  # Normalize pixel values
+    X[image_filename] = img_array
+
+    # load and preprocess all annotations of respective image
+    for element_id, _ in y.items():
+        annotation_path = os.path.join(annotations_folder, element_id, image_filename)
+        if not os.path.isfile(annotation_path):
+            print(f"The file '{annotation_path}' was not found.")
+            raise FileNotFoundError(f"The file '{annotation_path}' was not found.")
+        annotation = load_img(annotation_path, target_size=(ORIGINAL_HEIGHT, ORIGINAL_WIDTH), color_mode='grayscale')
+        annotation_array = img_to_array(annotation) / 255.0  # Normalize pixel values
+        y[element_id][image_filename] = annotation_array
+
+def init_seed_for_imagename(image_filenames) -> dict:
+    seed_dict = {}
+    for image_filename in image_filenames:
+        seed_dict[image_filename] = random.randint(0, 4294967295)
+    return seed_dict
 
 def load_data(dataset_folder):
     # find paths to original images and annotations
@@ -36,31 +62,15 @@ def load_data(dataset_folder):
     image_filenames = os.listdir(images_folder)
     image_filenames = sorted(image_filenames, key=omit_file_extension)
 
-    X = []
+    X = {}
     y = init_annotations_dictionary()
 
-    for image_filename in image_filenames:
-        img_path = os.path.join(images_folder, image_filename)
-        annotation_path = os.path.join(annotations_folder, 'address_text', image_filename)
-
-        # Load and preprocess the image
-        img = load_img(img_path, target_size=(ORIGINAL_HEIGHT, ORIGINAL_WIDTH), color_mode='grayscale')
-        img_array = img_to_array(img) / 255.0  # Normalize pixel values
-        X.append(img_array)
-
-        # load and preprocess all annotations of respective image
-        for element_id, _ in y.items():
-            annotation_path = os.path.join(annotations_folder, element_id, image_filename)
-            annotation = load_img(annotation_path, target_size=(ORIGINAL_HEIGHT, ORIGINAL_WIDTH), color_mode='grayscale')
-            annotation_array = img_to_array(annotation) / 255.0  # Normalize pixel values
-            y[element_id].append(annotation_array)
-
-    for element_id, annotation_list in y.items():
-        y[element_id] = np.array(annotation_list) 
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [executor.submit(load_and_preprocess_image, image_filename, images_folder, annotations_folder, X, y) for image_filename in image_filenames]
+        concurrent.futures.wait(futures)
 
     print( f'{len(image_filenames)} images loaded.'   )
-    start_index = omit_file_extension(image_filenames[0]) 
-    return np.array(X), y, start_index
+    return X, y, image_filenames
 
 def prepare_directories():
     if CLEAR_DIRECTORIES:
@@ -70,23 +80,32 @@ def prepare_directories():
     init_dir(AUGMENTED_IMAGES_DIRECTORY)
     init_annotations_dirs(AUGMENTED_ANNOTATIONS_DIRECTORY)
 
-def augment_image_and_annotations(i, X, y, datagen, start_index):
-    seed_iteration = random.randint(0, 4294967295)
+def augment_annotations(image_filename, X, y, datagen, seed_iteration):
+    for element_id, _ in y.items():
+        print(f'annotation seed: {seed_iteration} {image_filename}')
+        original_annotation = np.expand_dims(np.array(y[element_id][image_filename]), axis=0)
+        annotation_generator = datagen.flow(original_annotation, seed=seed_iteration)
+        augmented_annotation = annotation_generator.next()[0]
+        annotation_save_path = os.path.join(AUGMENTED_ANNOTATIONS_DIRECTORY, element_id, f"{image_filename}")
+        augmented_annotation = (augmented_annotation[:, :, 0] * 255).astype(np.uint8)
+        imageio.imwrite(annotation_save_path, augmented_annotation)
+
+def augment_image_and_annotations(image_filename, X, y, datagen, seed_iteration):
 
     # augment and save original image
-    original_image = np.expand_dims(X[i], axis=0)
+    original_image = np.expand_dims(np.array(X[image_filename]), axis=0)
     image_generator = datagen.flow(original_image, seed=seed_iteration)
     augmented_image = image_generator.next()[0]
     augmented_image = (augmented_image[:, :, 0] * 255).astype(np.uint8)
-    image_save_path = os.path.join(AUGMENTED_IMAGES_DIRECTORY, f"{i}.png")
+    image_save_path = os.path.join(AUGMENTED_IMAGES_DIRECTORY, f"{image_filename}")
     imageio.imwrite(image_save_path, augmented_image)
 
     # augment and save all annotations of respective image
     for element_id, _ in y.items():
-        original_annotation = np.expand_dims(y[element_id][i], axis=0)
+        original_annotation = np.expand_dims(np.array(y[element_id][image_filename]), axis=0)
         annotation_generator = datagen.flow(original_annotation, seed=seed_iteration)
         augmented_annotation = annotation_generator.next()[0]
-        annotation_save_path = os.path.join(AUGMENTED_ANNOTATIONS_DIRECTORY, element_id, f"{i}.png")
+        annotation_save_path = os.path.join(AUGMENTED_ANNOTATIONS_DIRECTORY, element_id, f"{image_filename}")
         augmented_annotation = (augmented_annotation[:, :, 0] * 255).astype(np.uint8)
         imageio.imwrite(annotation_save_path, augmented_annotation)
 
@@ -94,7 +113,7 @@ def augment():
     prepare_directories()
     dataset_folder = './generated/original/'
     print('Loading dataset . . .')
-    X, y, start_index = load_data(dataset_folder)
+    X, y, image_filenames = load_data(dataset_folder)
     print('Augmenting . . .')
 
     # Create an ImageDataGenerator
@@ -108,9 +127,12 @@ def augment():
         fill_mode='nearest'
     )
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(augment_image_and_annotations, i, X, y, datagen, start_index) for i in range(start_index, start_index + len(X))]
-        concurrent.futures.wait(futures)
+    # with concurrent.futures.ThreadPoolExecutor() as executor:
+    #     futures = [executor.submit(augment_image_and_annotations, image_filename, X, y, datagen, seed) for image_filename, seed in image_filenames.items()]
+    #     concurrent.futures.wait(futures)
+
+    for image_filename in image_filenames:
+        augment_image_and_annotations(image_filename, X, y, datagen, random.randint(0, 4294967295))
 
 # import time
 # t_start = time.time()
