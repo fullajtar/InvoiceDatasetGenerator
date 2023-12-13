@@ -1,9 +1,10 @@
 CLEAR_DIRECTORIES = True
-OUT_DIRECTORY = './generated/original/images/'
-OUT_ANNOTATIONS_DIRECTORY = './generated/original/annotations/'
+ORIGINAL_DATASET_DIRECTORY = './generated/original/'
+ORIGINAL_IMAGES_DIRECTORY = f'{ORIGINAL_DATASET_DIRECTORY}images/'
+ORIGINAL_ANNOTATIONS_DIRECTORY = f'{ORIGINAL_DATASET_DIRECTORY}annotations/'
 AUGMENTED_IMAGES_DIRECTORY = './generated/augmented/images/'
 AUGMENTED_ANNOTATIONS_DIRECTORY = './generated/augmented/annotations/'
-HIDE_LABELS = "Maybe"
+HIDE_LABELS = 'Maybe'
 INVOICE_LANGUAGES = ['./JSON/slovak.json', './JSON/english.json']
 INVOICE_TEMPLATES = ['./HTML/template.html']
 FIELD_INCLUSION = './JSON/include_fields.json' #bool dictionary, true => field will be visible, false => 'display: none'

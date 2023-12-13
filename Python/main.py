@@ -138,20 +138,20 @@ def generate_annotations(fields_dict, template, driver, invoice_index, annotatio
                 file.write(soup.prettify())
             ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
             annotation_absolute_path = os.path.join(os.path.sep, ROOT_DIR, '..' , 'HTML', 'annotations', f"{element_id}.html")
-            export_html_as_jpg( f"{element_id}/{invoice_index}" , OUT_ANNOTATIONS_DIRECTORY, driver, annotation_absolute_path)
+            export_html_as_jpg( f"{element_id}/{invoice_index}" , ORIGINAL_ANNOTATIONS_DIRECTORY, driver, annotation_absolute_path)
     return None
 
 def prepare_directories():
     if CLEAR_DIRECTORIES:
-        remove_dir(OUT_DIRECTORY)
+        remove_dir(ORIGINAL_IMAGES_DIRECTORY)
         remove_dir(ANNOTATIONS_PATH)
-        remove_dir(OUT_ANNOTATIONS_DIRECTORY)
+        remove_dir(ORIGINAL_ANNOTATIONS_DIRECTORY)
         
-    init_dir(OUT_DIRECTORY)
+    init_dir(ORIGINAL_IMAGES_DIRECTORY)
     init_dir(ANNOTATIONS_PATH)
-    init_dir(OUT_ANNOTATIONS_DIRECTORY)
+    init_dir(ORIGINAL_ANNOTATIONS_DIRECTORY)
 
-    init_annotations_dirs(OUT_ANNOTATIONS_DIRECTORY)
+    init_annotations_dirs(ORIGINAL_ANNOTATIONS_DIRECTORY)
 
 ANNOTATIONS_PATH = './HTML/annotations/'
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -178,7 +178,7 @@ def main():
                 # generate these dict fields to final invoice
                 fields_dict = randomize_include_fields(FIELD_INCLUSION)
                 fields_dict = generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup)
-                export_html_as_jpg(invoice_index, OUT_DIRECTORY, driver, html_output_path)
+                export_html_as_jpg(invoice_index, ORIGINAL_IMAGES_DIRECTORY, driver, html_output_path)
                 generate_annotations(fields_dict, './HTML/output.html', driver, invoice_index, ANNOTATIONS_PATH)
                 invoice_index += 1
 

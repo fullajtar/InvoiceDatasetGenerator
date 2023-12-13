@@ -111,9 +111,8 @@ def augment_image_and_annotations(image_filename, X, y, datagen, seed_iteration)
 
 def augment():
     prepare_directories()
-    dataset_folder = './generated/original/'
     print('Loading dataset . . .')
-    X, y, image_filenames = load_data(dataset_folder)
+    X, y, image_filenames = load_data(ORIGINAL_DATASET_DIRECTORY)
 
     # Create an ImageDataGenerator
     datagen = tf.keras.preprocessing.image.ImageDataGenerator(
