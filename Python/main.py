@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from FakeClass import FakeClass
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-import shutil
+from tqdm import tqdm
 
 from constants import * 
 from augment import augment
@@ -146,7 +146,6 @@ def prepare_directories():
         remove_dir(OUT_DIRECTORY)
         remove_dir(ANNOTATIONS_PATH)
         remove_dir(OUT_ANNOTATIONS_DIRECTORY)
-        print('----------------')
         
     init_dir(OUT_DIRECTORY)
     init_dir(ANNOTATIONS_PATH)
@@ -167,14 +166,12 @@ def main():
         
     for template in INVOICE_TEMPLATES:
         soup_template = read_html_template(template)
-        print(f'Using {template} template . . .')
 
         for language in INVOICE_LANGUAGES:
-            print(f'Generating invoices for {language} language . . .')
             loaded_dict, delivery_methods, payment_methods = read_language_pack(language)
             soup_template_translated = translate_template(soup_template, loaded_dict)
 
-            for i in range(INVOICES_TO_GENERATE):
+            for i in tqdm(range(INVOICES_TO_GENERATE), desc=f'template: {template}; language: {language}', colour='Green'):
                 soup = soup_template_translated
                 soup = read_html_template(template)
                 soup = translate_template(soup, loaded_dict)

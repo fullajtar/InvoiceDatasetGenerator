@@ -8,6 +8,7 @@ import imageio
 import json
 from dir_functions import init_annotations_dirs, init_dir, remove_dir
 import concurrent.futures
+from tqdm import tqdm
 
 def add_noise(img):
     '''Add random noise to an image'''
@@ -76,7 +77,6 @@ def prepare_directories():
     if CLEAR_DIRECTORIES:
         remove_dir(AUGMENTED_IMAGES_DIRECTORY)
         remove_dir(AUGMENTED_ANNOTATIONS_DIRECTORY)
-        print('----------------')
     init_dir(AUGMENTED_IMAGES_DIRECTORY)
     init_annotations_dirs(AUGMENTED_ANNOTATIONS_DIRECTORY)
 
@@ -114,7 +114,6 @@ def augment():
     dataset_folder = './generated/original/'
     print('Loading dataset . . .')
     X, y, image_filenames = load_data(dataset_folder)
-    print('Augmenting . . .')
 
     # Create an ImageDataGenerator
     datagen = tf.keras.preprocessing.image.ImageDataGenerator(
@@ -131,7 +130,7 @@ def augment():
     #     futures = [executor.submit(augment_image_and_annotations, image_filename, X, y, datagen, seed) for image_filename, seed in image_filenames.items()]
     #     concurrent.futures.wait(futures)
 
-    for image_filename in image_filenames:
+    for image_filename in tqdm(image_filenames, desc='Augmenting', colour='Green'):
         augment_image_and_annotations(image_filename, X, y, datagen, random.randint(0, 4294967295))
 
 # import time
