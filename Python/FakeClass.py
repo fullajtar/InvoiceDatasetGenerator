@@ -1,5 +1,6 @@
 from faker import Faker
 from datetime import datetime, timedelta
+from ItemClass import Item
 import re
 import random
 import string
@@ -35,6 +36,9 @@ class FakeClass:
         pattern = re.compile(r'[^a-zA-Z0-9]')
         normalized_supplier_name =  pattern.sub('', fake_supplier_company).lower()
         supplier_country = fake.country_code()
+
+        number_of_items = random.randint(1, 20)
+        self.item_list:[Item] = [Item() for _ in range(number_of_items)]
 
         self.company_name_value = fake_supplier_company + ' ' + fake_supplier_company_suffix
         self.address_value = fake.address()
@@ -75,6 +79,12 @@ class FakeClass:
         self.recipient_tax_id_value = fake_recipient_id
         self.recipient_id_value = fake.ean(length=8)
 
+    @property
+    def to_pay_value(self):
+        total = 0
+        for item in self.item_list:
+            total += item.total
+        return round(total, 2)
         
     def get_fake_value_for_key(self, key):
         try:

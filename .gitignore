@@ -6,3 +6,6 @@ scratch.*
 test.*
 Python/__pycache__/
 HTML/output.html
+HTML/annotations/
+generated/
+Notes.txt
