@@ -41,14 +41,15 @@ def load_and_preprocess_image(image_filename, images_folder, annotations_folder,
     X[image_filename] = img_array
 
     # load and preprocess all annotations of respective image
-    for element_id, _ in y.items():
-        annotation_path = os.path.join(annotations_folder, element_id, image_filename)
-        if not os.path.isfile(annotation_path):
-            print(f"The file '{annotation_path}' was not found.")
-            raise FileNotFoundError(f"The file '{annotation_path}' was not found.")
-        annotation = load_img(annotation_path, target_size=(ORIGINAL_HEIGHT, ORIGINAL_WIDTH), color_mode='grayscale')
-        annotation_array = img_to_array(annotation) / 255.0  # Normalize pixel values
-        y[element_id][image_filename] = annotation_array
+    if GENERATE_BOUNDING_BOX_ANNOTATIONS:
+        for element_id, _ in y.items():
+            annotation_path = os.path.join(annotations_folder, element_id, image_filename)
+            if not os.path.isfile(annotation_path):
+                print(f"The file '{annotation_path}' was not found.")
+                raise FileNotFoundError(f"The file '{annotation_path}' was not found.")
+            annotation = load_img(annotation_path, target_size=(ORIGINAL_HEIGHT, ORIGINAL_WIDTH), color_mode='grayscale')
+            annotation_array = img_to_array(annotation) / 255.0  # Normalize pixel values
+            y[element_id][image_filename] = annotation_array
 
 def init_seed_for_imagename(image_filenames) -> dict:
     seed_dict = {}
@@ -101,13 +102,14 @@ def augment_image_and_annotations(image_filename, X, y, datagen, seed_iteration)
     imageio.imwrite(image_save_path, augmented_image)
 
     # augment and save all annotations of respective image
-    for element_id, _ in y.items():
-        original_annotation = np.expand_dims(np.array(y[element_id][image_filename]), axis=0)
-        annotation_generator = datagen.flow(original_annotation, seed=seed_iteration)
-        augmented_annotation = annotation_generator.next()[0]
-        annotation_save_path = os.path.join(AUGMENTED_ANNOTATIONS_DIRECTORY, element_id, f"{image_filename}")
-        augmented_annotation = (augmented_annotation[:, :, 0] * 255).astype(np.uint8)
-        imageio.imwrite(annotation_save_path, augmented_annotation)
+    if GENERATE_BOUNDING_BOX_ANNOTATIONS:
+        for element_id, _ in y.items():
+            original_annotation = np.expand_dims(np.array(y[element_id][image_filename]), axis=0)
+            annotation_generator = datagen.flow(original_annotation, seed=seed_iteration)
+            augmented_annotation = annotation_generator.next()[0]
+            annotation_save_path = os.path.join(AUGMENTED_ANNOTATIONS_DIRECTORY, element_id, f"{image_filename}")
+            augmented_annotation = (augmented_annotation[:, :, 0] * 255).astype(np.uint8)
+            imageio.imwrite(annotation_save_path, augmented_annotation)
 
 def augment():
     prepare_directories()

@@ -1,3 +1,4 @@
+import csv
 import json
 import time
 import os
@@ -111,14 +112,14 @@ def generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup):
     # temporarily save HTML file, later used for image export
     with open('./HTML/output.html', 'w', encoding='utf-8') as file:
         file.write(soup.prettify())
-    return fields_dict
+    return fields_dict, faked
 
 def read_html_template(filename):
     with open(filename, 'r', encoding='utf-8') as html_file:
         html_content = html_file.read()
         return BeautifulSoup(html_content, 'html.parser')
 
-def generate_annotations(fields_dict, template, driver, invoice_index, annotations_path): 
+def generate_bounding_box_annotations(fields_dict, template, driver, invoice_index, annotations_path): 
     # insert faked fields to HTML code
     for element_id, include_field in fields_dict.items():
         soup = read_html_template(template)
@@ -141,6 +142,21 @@ def generate_annotations(fields_dict, template, driver, invoice_index, annotatio
             export_html_as_jpg( f"{element_id}/{invoice_index}" , ORIGINAL_ANNOTATIONS_DIRECTORY, driver, annotation_absolute_path)
     return None
 
+def init_data_annotations_csv():
+    with open(FIELD_INCLUSION, 'r', encoding='utf-8') as file:
+        fields_dict = json.load(file)
+        headers = ['filename']
+        for field_id, field_inclusion in fields_dict.items():
+            if field_inclusion != False:
+                headers.append(field_id)
+
+    csv_output_path = os.path.join(ORIGINAL_ANNOTATIONS_DIRECTORY, 'data_annotations.csv')
+    with open(csv_output_path, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(headers)
+    
+    return fields_dict
+
 def prepare_directories():
     if CLEAR_DIRECTORIES:
         remove_dir(ORIGINAL_IMAGES_DIRECTORY)
@@ -156,6 +172,20 @@ def prepare_directories():
 ANNOTATIONS_PATH = './HTML/annotations/'
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
+
+def generate_data_annotations(fields_dict, faked, invoice_index):
+    row = [f"{invoice_index}.png"]
+    for field_id, field_inclusion in fields_dict.items():
+        if field_inclusion != False:
+            row.append(faked.get_fake_value_for_key(field_id))
+            
+    csv_output_path = os.path.join(ORIGINAL_ANNOTATIONS_DIRECTORY, 'data_annotations.csv')
+    with open(csv_output_path, 'a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(row)
+
+
 def main():
     t_start = time.time()
     driver = init_webdriver()
@@ -163,6 +193,8 @@ def main():
     html_output_path = os.path.join(os.path.sep, ROOT_DIR, '..' , 'HTML', 'output.html')
 
     prepare_directories()
+    if GENERATE_DATA_ANNOTATIONS:
+        FIELD_INCLUSION_DICT = init_data_annotations_csv()
         
     for template in INVOICE_TEMPLATES:
         soup_template = read_html_template(template)
@@ -177,9 +209,12 @@ def main():
                 soup = translate_template(soup, loaded_dict)
                 # generate these dict fields to final invoice
                 fields_dict = randomize_include_fields(FIELD_INCLUSION)
-                fields_dict = generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup)
+                fields_dict, faked = generate_html_invoice(delivery_methods, payment_methods, fields_dict, soup)
                 export_html_as_jpg(invoice_index, ORIGINAL_IMAGES_DIRECTORY, driver, html_output_path)
-                generate_annotations(fields_dict, './HTML/output.html', driver, invoice_index, ANNOTATIONS_PATH)
+                if GENERATE_BOUNDING_BOX_ANNOTATIONS:
+                    generate_bounding_box_annotations(fields_dict, './HTML/output.html', driver, invoice_index, ANNOTATIONS_PATH)
+                if GENERATE_DATA_ANNOTATIONS:
+                    generate_data_annotations(FIELD_INCLUSION_DICT, faked, invoice_index)
                 invoice_index += 1
 
     # Close the browser

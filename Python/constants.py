@@ -12,3 +12,5 @@ INVOICES_TO_GENERATE = 2 #per each combination of language-template
 INVOICE_NAME_START_AT = 0 #name of first generated invoice
 HIDE_EMPTY_ROWS = False #empty datafields will have 'display: none
 ORIGINAL_HEIGHT, ORIGINAL_WIDTH = 1153, 821
+GENERATE_DATA_ANNOTATIONS = True
+GENERATE_BOUNDING_BOX_ANNOTATIONS = False
