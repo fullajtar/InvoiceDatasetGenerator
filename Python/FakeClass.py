@@ -5,23 +5,31 @@ import re
 import random
 import string
 
+
 def generate_specific_symbol(length=6):
     symbols = string.digits + string.ascii_uppercase
-    specific_symbol = ''.join(random.choice(symbols) for _ in range(length))
+    specific_symbol = "".join(random.choice(symbols) for _ in range(length))
     return specific_symbol
 
+
 def generate_variable_symbol(length=10):
-    variable_symbol = ''.join(str(random.randint(0, 9)) for _ in range(length))
+    variable_symbol = "".join(str(random.randint(0, 9)) for _ in range(length))
     return variable_symbol
 
+
 def generate_constant_symbol(length=3):
-    chars = ''.join(random.choice(string.ascii_uppercase) for _ in range(length))
-    numbers = ''.join(str(random.randint(0, 9)) for _ in range(length))
+    chars = "".join(random.choice(string.ascii_uppercase) for _ in range(length))
+    numbers = "".join(str(random.randint(0, 9)) for _ in range(length))
     return chars + numbers
 
-class FakeClass:
 
-    def __init__(self, DELIVERY_METHODS:list, PAYMENT_METHODS:list, DATE_FORMAT:str = "%Y-%m-%d"):
+class FakeClass:
+    def __init__(
+        self,
+        DELIVERY_METHODS: list,
+        PAYMENT_METHODS: list,
+        DATE_FORMAT: str = "%Y-%m-%d",
+    ):
         fake = Faker()
         issue_date = fake.date()
         issue_date = datetime.strptime(fake.date(), "%Y-%m-%d")
@@ -29,21 +37,25 @@ class FakeClass:
         date_of_taxation = due_date
         delivery_date = fake.date_between(issue_date, due_date)
         date_of_receipt_payment = fake.date_between(issue_date, due_date)
-        
+
         fake_supplier_company = fake.company()
         fake_supplier_company_suffix = fake.company_suffix()
-        
-        pattern = re.compile(r'[^a-zA-Z0-9]')
-        normalized_supplier_name =  pattern.sub('', fake_supplier_company).lower()
+
+        pattern = re.compile(r"[^a-zA-Z0-9]")
+        normalized_supplier_name = pattern.sub("", fake_supplier_company).lower()
         supplier_country = fake.country_code()
 
         number_of_items = random.randint(1, 20)
-        self.item_list:[Item] = [Item() for _ in range(number_of_items)]
+        self.item_list: [Item] = [Item() for _ in range(number_of_items)]
 
-        self.company_name_value = fake_supplier_company + ' ' + fake_supplier_company_suffix
+        self.company_name_value = (
+            fake_supplier_company + " " + fake_supplier_company_suffix
+        )
         self.address_value = fake.address()
-        self.website_value = 'www.'+ normalized_supplier_name + '.' + supplier_country.lower()
-        self.email_value = normalized_supplier_name + '@' + fake.free_email_domain()
+        self.website_value = (
+            "www." + normalized_supplier_name + "." + supplier_country.lower()
+        )
+        self.email_value = normalized_supplier_name + "@" + fake.free_email_domain()
         self.phone_number_value = fake.phone_number()
         self.iban_value = fake.iban()
         self.account_number_value = fake.bban()
@@ -71,8 +83,6 @@ class FakeClass:
         self.variable_symbol_value = generate_variable_symbol()
         self.constant_symbol_value = generate_constant_symbol()
 
-
-
         recipient_country = fake.country_code()
         fake_recipient_id = fake.ean(length=13)
         self.recipient_vat_id_value = recipient_country.upper() + fake_recipient_id
@@ -85,7 +95,7 @@ class FakeClass:
         for item in self.item_list:
             total += item.total
         return round(total, 2)
-        
+
     def get_fake_value_for_key(self, key):
         try:
             if key == "company_name_text":
