@@ -211,6 +211,8 @@ def generate_data_annotations(fields_dict, faked, invoice_index):
     for field_id, field_inclusion in fields_dict.items():
         if field_inclusion != False:
             row.append(faked.get_fake_value_for_key(field_id))
+        else:
+            row.append('')
 
     csv_output_path = os.path.join(
         ORIGINAL_ANNOTATIONS_DIRECTORY, "data_annotations.csv"
@@ -265,7 +267,7 @@ def main():
                     )
                 if GENERATE_DATA_ANNOTATIONS:
                     generate_data_annotations(
-                        FIELD_INCLUSION_DICT, faked, invoice_index
+                        fields_dict, faked, invoice_index
                     )
                 invoice_index += 1
 
