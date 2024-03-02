@@ -212,7 +212,8 @@ def generate_data_annotations(fields_dict, faked, invoice_index):
         if field_inclusion != False:
             row.append(faked.get_fake_value_for_key(field_id))
         else:
-            row.append('')
+            row.append("")
+    row.pop() # the number of row elements fits number of headers, without it there is one additional emptystring and everything shifts by 1 column
 
     csv_output_path = os.path.join(
         ORIGINAL_ANNOTATIONS_DIRECTORY, "data_annotations.csv"
